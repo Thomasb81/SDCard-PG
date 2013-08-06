@@ -1,1 +1,0 @@
-vhdtdtfi -lang verilog -prj SDCard-PG -o /home/tom/prog/git/SDCard-PG/build/DCM0.tfi -lib work /home/tom/prog/git/SDCard-PG/rtl//DCM0.v -module DCM0 -template /opt/Xilinx/14.5/ISE_DS/ISE//data/tfi.tft -deleteonerror 

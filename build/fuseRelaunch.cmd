@@ -1,1 +1,0 @@
--intstyle "ise" -incremental -o "/home/tom/prog/git/SDCard-PG/build/tb_isim_beh.exe" -prj "/home/tom/prog/git/SDCard-PG/build/tb_beh.prj" "work.tb" 

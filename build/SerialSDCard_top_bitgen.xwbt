@@ -1,8 +1,0 @@
-INTSTYLE=ise
-INFILE=/home/tom/prog/git/SDCard-PG/build/SerialSDCard_top.ncd
-OUTFILE=/home/tom/prog/git/SDCard-PG/build/SerialSDCard_top.bit
-FAMILY=Spartan3E
-PART=xc3s500e-4vq100
-WORKINGDIR=/home/tom/prog/git/SDCard-PG/build
-LICENSE=WebPack
-USER_INFO=207162642_0_0_431
