@@ -1,7 +1,7 @@
-module SerialSDCard_top(osc_in,nreset,usb_rx,usb_tx,audio_r,audio_l,led1,led2,led3,led4,sd_clk,sd_cmd,sd_data);
+module SerialSDCard_top(osc_in,Wing2_CL00,usb_rx,usb_tx,audio_r,audio_l,led1,led2,led3,led4,sd_clk,sd_cmd,sd_data);
 
 input osc_in;
-input nreset;
+output Wing2_CL00;
 output usb_rx; // connected to fpga_uart_tx
 input usb_tx; // connected to fpga_uart_rx
 output audio_r;
@@ -22,12 +22,20 @@ wire cfg_done;
 wire cfg_clk;
 wire cfg_dat;
 
-reg [15:0] data;
+reg [15:0] data_2B;
+wire [7:0] data_1B;
+wire valid;
 reg [7:0] led_latch;
 reg reset;
 reg [2:0] reset_cpt;
-reg [34:0] cpt;
+reg [40:0] cpt;
 reg fifo_wr_en;
+
+reg [10:0] tick_48k;
+reg fifo_rd_en;
+
+wire [15:0] fifo_out;
+wire [15:0] pcm;
 
 wire prog_full;
 
@@ -56,21 +64,21 @@ chip SD0 (
     .cfg_done_i(cfg_done), 
     .dat_done_i(dat_done), 
     .cfg_clk_o(cfg_clk), 
-    .cfg_dat_o(cfg_dat),
-	 .cfg_hold_i(prog_full),
-	 .cfg_dat_val_o()
+    .cfg_dat_o(data_1B),
+    .cfg_hold_i(prog_full),
+    .cfg_dat_val_o(valid)
     );
 
 fifo fifo0 (
   .rst(~reset), // input rst
   .wr_clk(clk50M), // input wr_clk
   .rd_clk(clk50M), // input rd_clk
-  .din(data), // input [15 : 0] din
+  .din(data_2B), // input [15 : 0] din
   .wr_en(fifo_wr_en), // input wr_en
-  .rd_en(1'b0), // input rd_en
-  .dout(), // output [15 : 0] dout
+  .rd_en(fifo_rd_en), // input rd_en
+  .dout(fifo_out), // output [15 : 0] dout
   .full(), // output full
-  .empty(), // output empty
+  .empty(empty), // output empty
   .prog_full(prog_full) // output prog_full
 );
 
@@ -81,16 +89,22 @@ assign cfg_done = 1'b1;
 always @(posedge clk50M) begin
  // if (detach == 1'b1) cfg_done <= 1'b1;
   fifo_wr_en <= 1'b0;
-  if (cfg_clk == 1'b0) begin
-    data <={data[14:0],cfg_dat};
+  if (cfg_clk == 1'b0 && valid == 1'b1 && cpt[0] == 1'b0) begin
+    data_2B[7:0] <= data_1B;
+//    data_2B[15:0] <= data_1B;
     cpt <= cpt + 1;
-    if (cpt[3:0] == 4'b0000) begin
-      fifo_wr_en <= ~cfg_clk;
-	 end
-    if (cpt== 19878974*8) begin
-      dat_done <= 1'b1;
-	 end	 
   end
+  else if (cfg_clk == 1'b0 && valid == 1'b1 && cpt[0] == 1'b1) begin
+    data_2B[15:8] <= data_1B;
+//	 data_2B[7:0] <= data_1B;
+	 cpt <= cpt + 1;
+	 fifo_wr_en <= 1'b1;
+  end
+
+//  if (cpt== 19878974) begin
+  if (cpt == 30735046 ) begin
+    dat_done <= 1'b1;
+  end  
   
   if (reset_cpt < 3'b111) begin
     reset_cpt <= reset_cpt +1;
@@ -100,19 +114,43 @@ always @(posedge clk50M) begin
   if (reset_cpt == 3'b111)
     reset <= 1'b1;
 
-
-
-
 end
 
+always @(posedge clk50M) begin
+  if (reset == 0) begin
+    tick_48k <= 0;
+	 fifo_rd_en <=1'b0;
+  end
+  else if (tick_48k == 2000)begin
+    tick_48k <=0;
+	 fifo_rd_en <=1'b1;
+  end
+  else begin
+    tick_48k <= tick_48k+1;
+	 fifo_rd_en <= 1'b0;
+  end
+end
 
-assign led1 = data[0];
-assign led2 = data[1];
-assign led3 = data[2];
-assign led4 = data[3];
+assign Wing2_CL00 = fifo_rd_en;
 
-assign audio_r =  1'b0;
-assign audio_l = 1'b0;
+assign pcm = (empty== 1'b1) ? 16'h8000 : fifo_out;
+
+dac16 dac0 (
+    .clk(clk50M), 
+    .rst(~reset), 
+    .data(pcm), 
+    .dac_out(dac_out)
+    );
+
+
+
+assign led1 = dat_done;
+assign led2 = 1'b0;
+assign led3 = 1'b0;
+assign led4 = 1'b0;
+
+assign audio_r =  dac_out;
+assign audio_l = dac_out;
 
 assign usb_rx = 1'b1;
 
@@ -121,6 +159,7 @@ initial begin
   reset_cpt <= 3'b000;
   dat_done <=1'b0;
   fifo_wr_en <= 1'b0;
+  data_2B <= 0;
 end
 
 

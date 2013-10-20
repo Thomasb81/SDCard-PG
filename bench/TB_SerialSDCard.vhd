@@ -42,7 +42,7 @@ ARCHITECTURE behavior OF TB_SerialSDCard IS
     COMPONENT SerialSDCard_top
     PORT(
          osc_in : IN  std_logic;
-         nreset : IN  std_logic;
+         Wing2_CL00 : OUT  std_logic;
          usb_rx : OUT  std_logic;
          usb_tx : IN  std_logic;
          audio_r : OUT  std_logic;
@@ -72,7 +72,7 @@ ARCHITECTURE behavior OF TB_SerialSDCard IS
 
    --Inputs
    signal osc_in : std_logic := '0';
-   signal nreset : std_logic := '0';
+   signal Wing2_CL00 : std_logic := '0';
    signal usb_tx : std_logic := '0';
 
 	--BiDirs
@@ -101,7 +101,7 @@ BEGIN
 	-- Instantiate the Unit Under Test (UUT)
    uut: SerialSDCard_top PORT MAP (
           osc_in => osc_in,
-          nreset => nreset,
+          Wing2_CL00 => Wing2_CL00,
           usb_rx => usb_rx,
           usb_tx => usb_tx,
           audio_r => audio_r,

@@ -85,8 +85,8 @@ entity spi_boot is
     cfg_init_n_i   : in  std_logic;
     cfg_done_i     : in  std_logic;
     dat_done_i     : in  std_logic;
---    cfg_clk_o      : out std_logic;
-    cfg_dat_o      : out std_logic;
+    cfg_clk_o      : out std_logic;
+    cfg_dat_o      : out std_logic_vector( 7 downto 0);
     cfg_hold_i     : in std_logic;
     cfg_dat_val_o  : out std_logic
   );
@@ -183,6 +183,8 @@ architecture rtl of spi_boot is
 
   signal true_s         : boolean;
 
+  signal dat_o : std_logic_vector (7 downto 0);
+
 begin
 
   true_s <= true;
@@ -224,7 +226,12 @@ begin
       if spi_clk_rising_q then
         case res_bc_s is
           when NONE =>
-            bit_cnt_q       <= bit_cnt_q - 1;
+            if cfg_hold_i = '0' then
+              bit_cnt_q     <= bit_cnt_q - 1;
+            else
+              -- stole the bit counter
+              bit_cnt_q     <= bit_cnt_q;
+            end if;
           when RES_MAX =>
             bit_cnt_q       <= (others => '1');
           when RES_47 =>
@@ -258,6 +265,7 @@ begin
       -- while output value changes on falling edge of cfg_clk
       if cfg_clk_q = '1' and spi_clk_rising_q then
         cfg_dat_q <= spi_data_in_i;
+        dat_o     <= dat_o(6 downto 0) & spi_data_in_i;
       end if;
 
       -- Controller FSM state
@@ -949,12 +957,20 @@ begin
                     when en_outs_q else
                       '0';
   cfg_clk_o      <= cfg_clk_q;
-  cfg_dat_o      <= cfg_dat_q;
+  
+  --dat_o      <= dat_o(6 downto 0) & cfg_dat_q;
+  cfg_dat_o      <= dat_o;
   detached_o     <=   '0'
                     when en_outs_q else
                       '1';
-  cfg_dat_val_o <= '1' when ctrl_fsm_q = CMD18_DATA and
+  cfg_dat_val_o <= '1' when (ctrl_fsm_q = CMD18_DATA and
                             cmd_fsm_q = CMD and
-                            res_bc_s = NONE
+                            res_bc_s = NONE and 
+                            bit_cnt_q(2 downto 0) = "111" 
+                            and not (bit_cnt_q(width_bit_cnt_g-1 downto 0) = 2**width_bit_cnt_g-1))
+                            or
+                            (ctrl_fsm_q = CMD18_DATA and
+                             cmd_fsm_q = R1 and
+                             res_bc_s = NONE and bit_cnt_q = 15)
                        else '0';
 end rtl;

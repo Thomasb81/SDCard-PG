@@ -68,7 +68,7 @@ entity chip is
     cfg_done_i     : in  std_logic;
     dat_done_i     : in  std_logic;
     cfg_clk_o      : out std_logic;
-    cfg_dat_o      : out std_logic;
+    cfg_dat_o      : out std_logic_vector( 7 downto 0);
     cfg_hold_i     : in std_logic;
     cfg_dat_val_o  : out std_logic 
   );
@@ -105,7 +105,7 @@ architecture mmc of chip is
       cfg_done_i     : in  std_logic;
       dat_done_i     : in  std_logic;
       cfg_clk_o      : out std_logic;
-      cfg_dat_o      : out std_logic;
+      cfg_dat_o      : out std_logic_vector (7 downto 0);
       cfg_hold_i     : in std_logic;
       cfg_dat_val_o    : out std_logic
     );
