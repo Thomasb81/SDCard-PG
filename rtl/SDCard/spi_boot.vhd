@@ -85,8 +85,10 @@ entity spi_boot is
     cfg_init_n_i   : in  std_logic;
     cfg_done_i     : in  std_logic;
     dat_done_i     : in  std_logic;
-    cfg_clk_o      : out std_logic;
-    cfg_dat_o      : out std_logic
+--    cfg_clk_o      : out std_logic;
+    cfg_dat_o      : out std_logic;
+    cfg_hold_i     : in std_logic;
+    cfg_dat_val_o  : out std_logic
   );
 
 end spi_boot;
@@ -421,21 +423,23 @@ begin
         spi_clk_falling_q <= false;
 
       elsif clk_i'event and clk_i = '1' then
-        if mmc_compat_s then
-          -- MMC clock compatibility mode:
-          -- spi_clk_rising_q is an impulse right before rising edge of spi_clk_q
-          -- spi_clk_falling_q is an impulse right before falling edge of spi_clk_q
-          if mmc_cnt_ovfl_s then
-            spi_clk_rising_q  <= spi_clk_q = '0';
-            spi_clk_falling_q <= spi_clk_q = '1';
+        if cfg_hold_i = '0' then
+          if mmc_compat_s then
+            -- MMC clock compatibility mode:
+            -- spi_clk_rising_q is an impulse right before rising edge of spi_clk_q
+            -- spi_clk_falling_q is an impulse right before falling edge of spi_clk_q
+            if mmc_cnt_ovfl_s then
+              spi_clk_rising_q  <= spi_clk_q = '0';
+              spi_clk_falling_q <= spi_clk_q = '1';
+            else
+              spi_clk_rising_q  <= false;
+              spi_clk_falling_q <= false;
+            end if;
           else
-            spi_clk_rising_q  <= false;
-            spi_clk_falling_q <= false;
+            -- normal mode
+            spi_clk_rising_q  <= not spi_clk_rising_q;
+            spi_clk_falling_q <= true;
           end if;
-        else
-          -- normal mode
-          spi_clk_rising_q  <= not spi_clk_rising_q;
-          spi_clk_falling_q <= true;
         end if;
 
       end if;
@@ -949,5 +953,8 @@ begin
   detached_o     <=   '0'
                     when en_outs_q else
                       '1';
-
+  cfg_dat_val_o <= '1' when ctrl_fsm_q = CMD18_DATA and
+                            cmd_fsm_q = CMD and
+                            res_bc_s = NONE
+                       else '0';
 end rtl;

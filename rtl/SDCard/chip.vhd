@@ -47,6 +47,33 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+entity chip is
+
+  port (
+    -- System Interface -------------------------------------------------------
+    clk_i          : in  std_logic;
+    reset_i        : in  std_logic;
+    set_sel_n_i    : in  std_logic_vector(3 downto 0);
+    -- SD Card Interface ------------------------------------------------------
+    spi_clk_o      : out std_logic;
+    spi_cs_n_o     : out std_logic;
+    spi_data_in_i  : in  std_logic;
+    spi_data_out_o : out std_logic;
+    -- FPGA Configuration Interface -------------------------------------------
+    start_i        : in  std_logic;
+--    mode_i         : in  std_logic;
+    config_n_o     : out std_logic;
+    detached_o     : out std_logic;
+    cfg_init_n_i   : in  std_logic;
+    cfg_done_i     : in  std_logic;
+    dat_done_i     : in  std_logic;
+    cfg_clk_o      : out std_logic;
+    cfg_dat_o      : out std_logic;
+    cfg_hold_i     : in std_logic;
+    cfg_dat_val_o  : out std_logic 
+  );
+
+end chip;
 
 architecture mmc of chip is
 
@@ -78,7 +105,9 @@ architecture mmc of chip is
       cfg_done_i     : in  std_logic;
       dat_done_i     : in  std_logic;
       cfg_clk_o      : out std_logic;
-      cfg_dat_o      : out std_logic
+      cfg_dat_o      : out std_logic;
+      cfg_hold_i     : in std_logic;
+      cfg_dat_val_o    : out std_logic
     );
   end component;
 
@@ -128,7 +157,9 @@ begin
       cfg_done_i           => cfg_done_i,
       dat_done_i           => dat_done_i,
       cfg_clk_o            => cfg_clk_o,
-      cfg_dat_o            => cfg_dat_o
+      cfg_dat_o            => cfg_dat_o,
+      cfg_hold_i           => cfg_hold_i,
+      cfg_dat_val_o        => cfg_dat_val_o
     );
 
   -----------------------------------------------------------------------------
