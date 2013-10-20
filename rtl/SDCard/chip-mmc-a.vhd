@@ -87,8 +87,10 @@ architecture mmc of chip is
   signal spi_data_out_s : std_logic;
   signal spi_en_outs_s  : std_logic;
 
-  constant width_img_cnt_c    : integer := 2;   -- 4 images
-  constant num_bits_per_img_c : integer := 18;  -- 256 kByte per image
+  --constant width_img_cnt_c    : integer := 2;   -- 4 images
+  constant width_img_cnt_c    : integer := 0;   -- 1 images
+  --constant num_bits_per_img_c : integer := 18;  -- 256 kByte per image
+  constant num_bits_per_img_c : integer := 25;  -- 32 MByte per image
   constant set_sel_width_c    : integer := 31-width_img_cnt_c-num_bits_per_img_c;
   signal   set_sel_s          : std_logic_vector(set_sel_width_c downto 0);
 

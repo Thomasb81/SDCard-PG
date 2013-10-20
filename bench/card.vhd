@@ -360,7 +360,8 @@ begin
 
       -- send payload
       payload: for i in 0 to to_integer(block_len_q)-1 loop
-        t_v := read_addr_q(0) & calc_crc(read_addr_q);
+        --t_v := read_addr_q(0) & calc_crc(read_addr_q);
+        t_v := to_unsigned(i,8);
         for bit in 7 downto 0 loop
           fall_clk;
           read_spi_data_s <= t_v(bit);

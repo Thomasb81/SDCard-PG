@@ -16,7 +16,7 @@ inout [3:0] sd_data;
 
 wire clk50M;
 wire detach;
-wire dat_done;
+reg dat_done;
 wire cfg_done;
 
 wire cfg_clk;
@@ -26,7 +26,7 @@ reg [7:0] led;
 reg [7:0] led_latch;
 reg reset;
 reg [2:0] reset_cpt;
-reg [3:0] cpt;
+reg [34:0] cpt;
 
 
 DCM0 clock (
@@ -39,13 +39,15 @@ DCM0 clock (
 chip SD0 (
     .clk_i(clk50M), 
     .reset_i(reset), 
-    .set_sel_n_i(4'b0000), 
+//   .set_sel_n_i(4'b0000), 
+    .set_sel_n_i(4'b1111),
+
     .spi_clk_o(sd_clk), 
     .spi_cs_n_o(sd_data[3]), 
     .spi_data_in_i(sd_data[0]), 
     .spi_data_out_o(sd_cmd), 
     .start_i(1'b1), 
-    .mode_i(1'b0), 
+ //   .mode_i(1'b1), 
     .config_n_o(), 
     .detached_o(detach), 
     .cfg_init_n_i(cfg_init_n_i), 
@@ -55,7 +57,7 @@ chip SD0 (
     .cfg_dat_o(cfg_dat)
     );
 
-assign dat_done = 1'b0;
+//assign dat_done = 1'b0;
 assign cfg_done = 1'b1;
 
 always @(posedge clk50M) begin
@@ -66,6 +68,9 @@ always @(posedge clk50M) begin
     cpt <= cpt + 1;
     if (cpt[2:0] == 3'b000) begin
       led_latch <= led;
+	 end
+    if (cpt== 19878974*8) begin
+      dat_done <= 1'b1;
 	 end	 
   end
   
@@ -83,8 +88,8 @@ always @(posedge clk50M) begin
 end
 
 
-assign led1 = detach;
-assign led2 = (cpt[2:0] == 3'b001) ? 1'b1 :1'b0;
+assign led1 = led[0];
+assign led2 = led[1];
 assign led3 = led[2];
 assign led4 = led[3];
 
@@ -96,6 +101,7 @@ assign usb_rx = 1'b1;
 initial begin
   reset <= 1'b0;
   reset_cpt <= 3'b000;
+  dat_done <=1'b0;
 end
 
 

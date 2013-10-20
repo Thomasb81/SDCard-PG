@@ -83,7 +83,7 @@ architecture behav of tb_elem is
       spi_data_in_i  : in  std_logic;
       spi_data_out_o : out std_logic;
       start_i        : in  std_logic;
-      mode_i         : in  std_logic;
+--      mode_i         : in  std_logic;
       config_n_o     : out std_logic;
       detached_o     : out std_logic;
       cfg_init_n_i   : in  std_logic;
