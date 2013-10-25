@@ -46,6 +46,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 
 entity card is
@@ -100,6 +101,8 @@ architecture behav of card is
   signal start_read_s    : boolean;
   signal reading_s       : boolean;
 
+  signal data_mem : std_logic_vector( 7 downto 0);
+
   procedure rise_clk is
   begin
     wait until spi_clk_i'event and to_X01(spi_clk_i) = '1';
@@ -123,6 +126,14 @@ architecture behav of card is
       fall_clk;
     end loop;
   end fall_clk;
+
+  component sd_mem 
+  port(
+    addr : in std_logic_vector(31 downto 0);
+	 data : out std_logic_vector(7 downto 0)
+  );
+  end component;
+
 
 begin
 
@@ -361,7 +372,8 @@ begin
       -- send payload
       payload: for i in 0 to to_integer(block_len_q)-1 loop
         --t_v := read_addr_q(0) & calc_crc(read_addr_q);
-        t_v := to_unsigned(i,8);
+        --t_v := to_unsigned(i,8);
+		  t_v := unsigned(data_mem);
         for bit in 7 downto 0 loop
           fall_clk;
           read_spi_data_s <= t_v(bit);
@@ -430,5 +442,14 @@ begin
   spi_data_o <=   cmd_spi_data_s and read_spi_data_s
                 when spi_cs_n_i = '0' else
                   'Z';
-
+  
+  -----------------------------------------------------------------------------
+  -- Memory
+  -----------------------------------------------------------------------------
+  mem0 : sd_mem
+  port map(
+    addr => std_logic_vector(read_addr_q),
+	 data => data_mem
+  );
+  
 end behav;
