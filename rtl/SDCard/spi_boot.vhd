@@ -147,7 +147,7 @@ architecture rtl of spi_boot is
   subtype op_r     is integer range 5 downto 0;
   type    res_bc_t is (NONE, RES_MAX, RES_47, RES_15, RES_7);
   signal  bit_cnt_q  : unsigned(width_bit_cnt_g-1 downto 0);
-  signal  res_bc_s   : res_bc_t;
+  signal  res_bc_s   : res_bc_t := NONE;
   signal  upper_bitcnt_zero_s : boolean;
 
   signal cfg_dat_q : std_logic;
@@ -165,7 +165,7 @@ architecture rtl of spi_boot is
   signal start_q        : std_logic;
 
   signal img_cnt_s      : std_logic_vector(width_img_cnt_g downto 0);
-  signal cnt_en_img_s   : boolean;
+--  signal cnt_en_img_s   : boolean;
   signal mmc_cnt_ovfl_s : boolean;
   signal mmc_compat_s   : boolean;
 
@@ -480,7 +480,7 @@ begin
     -- default assignments
     ctrl_fsm_s   <= POWER_UP1;
     config_n_o   <= '1';
-    cnt_en_img_s <= false;
+--    cnt_en_img_s <= false;
     spi_cs_n_s   <= '0';
     mmc_compat_v := false;
     en_outs_s    <= true;
@@ -658,17 +658,18 @@ begin
        -- Issued CMD12: STOP_TRANSMISSION -------------------------------------
        when CMD12 =>
          if cmd_finished_s then
-           ctrl_fsm_s <= INC_IMG_CNT;
+--           ctrl_fsm_s <= INC_IMG_CNT;
+           ctrl_fsm_s <= WAIT_START;
          else
            ctrl_fsm_s <= CMD12;
          end if;
 
 
       -- Increment Image Counter ----------------------------------------------
-      when INC_IMG_CNT =>
-        spi_cs_n_s   <= '1';
-        ctrl_fsm_s   <= WAIT_START;
-        cnt_en_img_s <= true;
+--      when INC_IMG_CNT =>
+--        spi_cs_n_s   <= '1';
+--        ctrl_fsm_s   <= WAIT_START;
+--        cnt_en_img_s <= true;
 
 
 
@@ -903,25 +904,25 @@ begin
   -----------------------------------------------------------------------------
   -- Optional Image Counter
   -----------------------------------------------------------------------------
-  img_cnt: if width_img_cnt_g > 0 generate
-    img_cnt_b : spi_counter
-      generic map (
-        cnt_width_g   => width_img_cnt_g,
-        cnt_max_g     => 2**width_img_cnt_g - 1
-      )
-      port map (
-        clk_i         => clk_i,
-        reset_i       => reset_s,
-        cnt_en_i      => cnt_en_img_s,
-        cnt_o         => img_cnt_s(width_img_cnt_g-1 downto 0),
-        cnt_ovfl_o    => open
-      );
-    img_cnt_s(width_img_cnt_g) <= '0';
-  end generate;
-
-  no_img_cnt: if width_img_cnt_g = 0 generate
+--  img_cnt: if width_img_cnt_g > 0 generate
+--    img_cnt_b : spi_counter
+--      generic map (
+--        cnt_width_g   => width_img_cnt_g,
+--        cnt_max_g     => 2**width_img_cnt_g - 1
+--      )
+--      port map (
+--        clk_i         => clk_i,
+--        reset_i       => reset_s,
+--        cnt_en_i      => cnt_en_img_s,
+--        cnt_o         => img_cnt_s(width_img_cnt_g-1 downto 0),
+--        cnt_ovfl_o    => open
+--      );
+--    img_cnt_s(width_img_cnt_g) <= '0';
+--  end generate;
+--
+--  no_img_cnt: if width_img_cnt_g = 0 generate
     img_cnt_s <= (others => '0');
-  end generate;
+--  end generate;
 
 
   -----------------------------------------------------------------------------
